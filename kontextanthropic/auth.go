@@ -56,6 +56,13 @@ func configWithDefaultAuth(ctx context.Context, cfg Config, out io.Writer) (Conf
 	if cfg.AccessToken != "" || cfg.UserID != "" {
 		return cfg, nil
 	}
+	if os.Getenv("KONTEXT_LOCAL_SESSION") == "1" {
+		cfg.UserID = "kontext-local-session"
+		if cfg.APIBaseURL == "" {
+			cfg.APIBaseURL = defaultAPIBaseURL()
+		}
+		return cfg, nil
+	}
 	if token := os.Getenv("KONTEXT_ACCESS_TOKEN"); token != "" {
 		cfg.AccessToken = token
 		cfg.UserID = getenv("KONTEXT_USER_ID", "kontext-env-user")
