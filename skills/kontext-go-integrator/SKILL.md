@@ -10,13 +10,14 @@ Goal: add Kontext to an existing Anthropic Go agent with the smallest safe diff.
 Default behavior:
 1. Inspect the Go module and confirm `github.com/anthropics/anthropic-sdk-go` is used.
 2. Find `anthropic.NewClient`.
-3. Preserve existing credential behavior and add Kontext at the Anthropic client boundary.
-4. Add Anthropic request telemetry.
-5. Track the user prompt if the prompt variable is obvious.
-6. Find the existing tool execution boundary.
-7. Wrap that boundary with `ObserveTool`.
-8. Run `gofmt`, `go mod tidy`, and `go test ./...`.
-9. Report the detected shape, files changed, and verification result.
+3. Add the Kontext Go module with `go get github.com/kontext-security/kontext-go@v0.1.2`.
+4. Preserve existing credential behavior and add Kontext at the Anthropic client boundary.
+5. Add Anthropic request telemetry.
+6. Track the user prompt if the prompt variable is obvious.
+7. Find the existing tool execution boundary.
+8. Wrap that boundary with `ObserveTool`.
+9. Run `gofmt`, `go mod tidy`, and `go test ./...`.
+10. Report the detected shape, files changed, and verification result.
 
 Integration rules:
 - Do not migrate to BetaToolRunner unless explicitly requested.
@@ -29,6 +30,11 @@ Integration rules:
 
 Credential patch:
 ```go
+import (
+    kontext "github.com/kontext-security/kontext-go"
+    kxanthropic "github.com/kontext-security/kontext-go/anthropic"
+)
+
 kx, err := kontext.Start(ctx, kontext.Config{
     ServiceName: "customer-agent",
     Environment: "dev",
