@@ -74,7 +74,7 @@ func run(ctx context.Context, opts demoOptions) error {
 		ClientID:    kxClientIDFromEnv(),
 		Credentials: kontextanthropic.CredentialsConfig{
 			Mode:      kontextanthropic.CredentialModeProvide,
-			Providers: []kontextanthropic.Provider{kontextanthropic.ProviderAnthropic},
+			Providers: []kontextanthropic.Provider{anthropicProviderHandle()},
 		},
 		Output: kontextOutputMode(opts),
 		OnEvent: func(event kontextanthropic.Event) {
@@ -154,7 +154,7 @@ func anthropicCredentialSource(ctx context.Context, kx *kontextanthropic.Client,
 	if os.Getenv("ANTHROPIC_API_KEY") != "" {
 		return "environment", nil
 	}
-	credential, err := kx.ProviderCredential(ctx, kontextanthropic.ProviderAnthropic)
+	credential, err := kx.ProviderCredential(ctx, anthropicProviderHandle())
 	if err != nil {
 		return "", err
 	}
@@ -163,7 +163,7 @@ func anthropicCredentialSource(ctx context.Context, kx *kontextanthropic.Client,
 
 func verifyConnectedAnthropicCredential(ctx context.Context, kx *kontextanthropic.Client, ui *demoUI) error {
 	ui.Section("Verify")
-	credential, err := kx.ProviderCredential(ctx, kontextanthropic.ProviderAnthropic)
+	credential, err := kx.ProviderCredential(ctx, anthropicProviderHandle())
 	if err != nil {
 		ui.Warning("Anthropic credential", "not available yet")
 		return fmt.Errorf("verify Anthropic credential exchange: %w", err)
@@ -404,7 +404,7 @@ func shortResult(text string) string {
 
 func anthropicClientOptions(kx *kontextanthropic.Client, demoOpts demoOptions) ([]option.RequestOption, error) {
 	requestOpts := []option.RequestOption{
-		kx.WithCredentials(),
+		kx.WithCredentialsFor(anthropicProviderHandle()),
 		kx.WithRequestTelemetry(),
 	}
 	if demoOpts.fakeAnthropic {
@@ -418,4 +418,11 @@ func anthropicClientOptions(kx *kontextanthropic.Client, demoOpts demoOptions) (
 
 func kxClientIDFromEnv() string {
 	return os.Getenv("KONTEXT_CLIENT_ID")
+}
+
+func anthropicProviderHandle() kontextanthropic.Provider {
+	if value := os.Getenv("KONTEXT_PROVIDER_HANDLE"); value != "" {
+		return kontextanthropic.Provider(value)
+	}
+	return kontextanthropic.Provider("anthropic-prod")
 }

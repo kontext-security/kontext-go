@@ -56,7 +56,7 @@ kx, err := kontext.Start(ctx, kontext.Config{
     Environment: "dev",
     Credentials: kontext.CredentialsConfig{
         Mode: kontext.CredentialModeProvide,
-        Providers: []kontext.Provider{kontext.ProviderAnthropic},
+        Providers: []kontext.Provider{"anthropic-prod"},
     },
 })
 if err != nil {
@@ -65,7 +65,7 @@ if err != nil {
 defer kx.End(ctx)
 
 client := anthropic.NewClient(
-    kxanthropic.WithCredentials(kx),
+    kxanthropic.WithCredentialsFor(kx, "anthropic-prod"),
     kxanthropic.WithRequestTelemetry(kx),
 )
 ```

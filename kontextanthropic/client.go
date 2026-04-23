@@ -17,17 +17,19 @@ import (
 
 // Config describes the Kontext session used by the Anthropic adapter.
 type Config struct {
-	ServiceName string
-	Environment string
-	APIBaseURL  string
-	AccessToken string
-	UserID      string
-	Agent       string
-	CWD         string
-	ClientID    string
-	Credentials CredentialsConfig
-	Output      OutputMode
-	OnEvent     func(Event)
+	ServiceName  string
+	Environment  string
+	APIBaseURL   string
+	URL          string
+	AccessToken  string
+	UserID       string
+	Agent        string
+	CWD          string
+	ClientID     string
+	ClientSecret string
+	Credentials  CredentialsConfig
+	Output       OutputMode
+	OnEvent      func(Event)
 }
 
 type CredentialsConfig struct {
@@ -233,8 +235,14 @@ func (c *Client) WithRequestTelemetry() option.RequestOption {
 // Existing ANTHROPIC_API_KEY or explicit Anthropic request options win unless
 // CredentialModeOverride is configured.
 func (c *Client) WithCredentials() option.RequestOption {
+	return c.WithCredentialsFor(ProviderAnthropic)
+}
+
+// WithCredentialsFor resolves the Anthropic API key from a specific Kontext
+// provider handle without writing it to disk.
+func (c *Client) WithCredentialsFor(provider Provider) option.RequestOption {
 	return option.WithMiddleware(func(req *http.Request, next option.MiddlewareNext) (*http.Response, error) {
-		mode := c.credentialMode(ProviderAnthropic)
+		mode := c.credentialMode(provider)
 		if mode != CredentialModeOverride {
 			if req.Header.Get("X-Api-Key") != "" || req.Header.Get("Authorization") != "" {
 				source := "request_option"
@@ -242,7 +250,7 @@ func (c *Client) WithCredentials() option.RequestOption {
 					source = "environment"
 				}
 				c.emit(req.Context(), "provider.credential.resolved", map[string]any{
-					"provider": ProviderAnthropic,
+					"provider": provider,
 					"source":   source,
 				})
 				return next(req)
@@ -250,7 +258,7 @@ func (c *Client) WithCredentials() option.RequestOption {
 			if key := os.Getenv("ANTHROPIC_API_KEY"); key != "" {
 				req.Header.Set("X-Api-Key", key)
 				c.emit(req.Context(), "provider.credential.resolved", map[string]any{
-					"provider": ProviderAnthropic,
+					"provider": provider,
 					"source":   "environment",
 				})
 				return next(req)
@@ -259,16 +267,16 @@ func (c *Client) WithCredentials() option.RequestOption {
 
 		if mode == CredentialModeObserve {
 			c.emit(req.Context(), "provider.credential.missing", map[string]any{
-				"provider": ProviderAnthropic,
+				"provider": provider,
 				"source":   "missing",
 			})
 			return nil, fmt.Errorf("ANTHROPIC_API_KEY is required; set it in the environment or enable Kontext credential mode provide")
 		}
 
-		credential, err := c.ProviderCredential(req.Context(), ProviderAnthropic)
+		credential, err := c.ProviderCredential(req.Context(), provider)
 		if err != nil {
 			c.emit(req.Context(), "provider.credential.missing", map[string]any{
-				"provider": ProviderAnthropic,
+				"provider": provider,
 				"source":   "kontext",
 				"error":    err.Error(),
 			})

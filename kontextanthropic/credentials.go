@@ -13,6 +13,7 @@ import (
 
 const tokenExchangeGrantType = "urn:ietf:params:oauth:grant-type:token-exchange"
 const accessTokenType = "urn:ietf:params:oauth:token-type:access_token"
+const confidentialClientTokenType = "urn:kontext:confidential-client"
 
 type ProviderCredential struct {
 	Provider Provider
@@ -46,9 +47,6 @@ func (c *Client) ProviderCredential(ctx context.Context, provider Provider) (Pro
 	}
 	c.mu.Unlock()
 
-	if c.cfg.AccessToken == "" {
-		return ProviderCredential{}, fmt.Errorf("Kontext access token is required to resolve provider %q", provider)
-	}
 	clientID := c.AgentClientID()
 	if clientID == "" {
 		clientID = c.cfg.ClientID
@@ -58,6 +56,9 @@ func (c *Client) ProviderCredential(ctx context.Context, provider Provider) (Pro
 	}
 	if clientID == "" {
 		return ProviderCredential{}, fmt.Errorf("Kontext client id is required to resolve provider %q", provider)
+	}
+	if c.cfg.AccessToken == "" && c.cfg.ClientSecret == "" {
+		return ProviderCredential{}, fmt.Errorf("Kontext client secret is required to resolve provider %q; set KONTEXT_CLIENT_SECRET from the Get Started with Kontext browser setup page", provider)
 	}
 
 	credential, err := c.exchangeProviderCredential(ctx, provider, clientID)
@@ -74,10 +75,15 @@ func (c *Client) ProviderCredential(ctx context.Context, provider Provider) (Pro
 func (c *Client) exchangeProviderCredential(ctx context.Context, provider Provider, clientID string) (ProviderCredential, error) {
 	body := url.Values{}
 	body.Set("grant_type", tokenExchangeGrantType)
-	body.Set("subject_token", c.cfg.AccessToken)
-	body.Set("subject_token_type", accessTokenType)
 	body.Set("resource", string(provider))
 	body.Set("client_id", clientID)
+	if c.cfg.ClientSecret != "" {
+		body.Set("client_secret", c.cfg.ClientSecret)
+		body.Set("subject_token_type", confidentialClientTokenType)
+	} else {
+		body.Set("subject_token", c.cfg.AccessToken)
+		body.Set("subject_token_type", accessTokenType)
+	}
 
 	req, err := http.NewRequestWithContext(
 		ctx,

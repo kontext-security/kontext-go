@@ -54,12 +54,15 @@ type callbackResult struct {
 
 func configWithDefaultAuth(ctx context.Context, cfg Config, out io.Writer) (Config, error) {
 	if cfg.AccessToken != "" || cfg.UserID != "" {
+		if cfg.APIBaseURL == "" {
+			cfg.APIBaseURL = apiBaseURLFromConfigOrDefault(cfg)
+		}
 		return cfg, nil
 	}
 	if os.Getenv("KONTEXT_LOCAL_SESSION") == "1" {
 		cfg.UserID = "kontext-local-session"
 		if cfg.APIBaseURL == "" {
-			cfg.APIBaseURL = defaultAPIBaseURL()
+			cfg.APIBaseURL = apiBaseURLFromConfigOrDefault(cfg)
 		}
 		return cfg, nil
 	}
@@ -67,27 +70,23 @@ func configWithDefaultAuth(ctx context.Context, cfg Config, out io.Writer) (Conf
 		cfg.AccessToken = token
 		cfg.UserID = getenv("KONTEXT_USER_ID", "kontext-env-user")
 		if cfg.APIBaseURL == "" {
-			cfg.APIBaseURL = defaultAPIBaseURL()
+			cfg.APIBaseURL = apiBaseURLFromConfigOrDefault(cfg)
 		}
 		return cfg, nil
 	}
 
-	apiBaseURL := cfg.APIBaseURL
-	if apiBaseURL == "" {
-		apiBaseURL = defaultAPIBaseURL()
+	if cfg.APIBaseURL == "" {
+		cfg.APIBaseURL = apiBaseURLFromConfig(cfg)
 	}
-	clientID := cfg.ClientID
-	if clientID == "" {
-		clientID = getenv("KONTEXT_LOGIN_CLIENT_ID", defaultKontextLoginClientID)
+	if cfg.ClientID == "" {
+		cfg.ClientID = os.Getenv("KONTEXT_CLIENT_ID")
 	}
-
-	session, err := loginWithPKCE(ctx, apiBaseURL, clientID, out)
-	if err != nil {
-		return cfg, err
+	if cfg.ClientSecret == "" {
+		cfg.ClientSecret = os.Getenv("KONTEXT_CLIENT_SECRET")
 	}
-	cfg.APIBaseURL = apiBaseURL
-	cfg.AccessToken = session.AccessToken
-	cfg.UserID = session.identityKey()
+	if cfg.ClientID == "" || cfg.ClientSecret == "" || cfg.APIBaseURL == "" {
+		return cfg, fmt.Errorf("Kontext setup is incomplete for long-running Go runtime: set KONTEXT_CLIENT_ID, KONTEXT_CLIENT_SECRET, and KONTEXT_URL from the Get Started with Kontext browser setup page")
+	}
 	return cfg, nil
 }
 
@@ -261,6 +260,26 @@ func (s *authSession) identityKey() string {
 
 func defaultAPIBaseURL() string {
 	return apiBaseURLFromKontextURL(getenv("KONTEXT_URL", defaultKontextURL))
+}
+
+func apiBaseURLFromConfig(cfg Config) string {
+	if cfg.APIBaseURL != "" {
+		return apiBaseURLFromKontextURL(cfg.APIBaseURL)
+	}
+	if cfg.URL != "" {
+		return apiBaseURLFromKontextURL(cfg.URL)
+	}
+	if value := os.Getenv("KONTEXT_URL"); value != "" {
+		return apiBaseURLFromKontextURL(value)
+	}
+	return ""
+}
+
+func apiBaseURLFromConfigOrDefault(cfg Config) string {
+	if value := apiBaseURLFromConfig(cfg); value != "" {
+		return value
+	}
+	return defaultAPIBaseURL()
 }
 
 func apiBaseURLFromKontextURL(kontextURL string) string {

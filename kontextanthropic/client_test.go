@@ -230,6 +230,89 @@ func TestProviderCredentialExchangesAnthropicKey(t *testing.T) {
 	}
 }
 
+func TestStartRequiresConfidentialRuntimeEnv(t *testing.T) {
+	t.Setenv("KONTEXT_CLIENT_ID", "")
+	t.Setenv("KONTEXT_CLIENT_SECRET", "")
+	t.Setenv("KONTEXT_ACCESS_TOKEN", "")
+	t.Setenv("KONTEXT_LOCAL_SESSION", "")
+
+	_, err := Start(context.Background(), Config{
+		ServiceName: "test-agent",
+		Environment: "test",
+	})
+	if err == nil {
+		t.Fatal("expected missing setup error")
+	}
+	if !strings.Contains(err.Error(), "KONTEXT_CLIENT_ID") ||
+		!strings.Contains(err.Error(), "KONTEXT_CLIENT_SECRET") ||
+		!strings.Contains(err.Error(), "KONTEXT_URL") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestProviderCredentialUsesConfidentialClientExchange(t *testing.T) {
+	var gotSubjectToken string
+	var gotSubjectTokenType string
+	var gotClientSecret string
+	var gotResource string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/oauth2/token" {
+			t.Fatalf("unexpected path %s", r.URL.Path)
+		}
+		if err := r.ParseForm(); err != nil {
+			t.Fatalf("parse form: %v", err)
+		}
+		gotSubjectToken = r.Form.Get("subject_token")
+		gotSubjectTokenType = r.Form.Get("subject_token_type")
+		gotClientSecret = r.Form.Get("client_secret")
+		gotResource = r.Form.Get("resource")
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{
+			"access_token":"sk-ant-api03-kontextSecretForTest",
+			"provider_kind":"key",
+			"provider_handle":"anthropic-prod",
+			"token_type":"Bearer"
+		}`))
+	}))
+	defer server.Close()
+
+	kx, err := Start(context.Background(), Config{
+		ServiceName:  "test-agent",
+		Environment:  "test",
+		URL:          server.URL + "/mcp",
+		ClientID:     "app_test",
+		ClientSecret: "secret_test",
+		Credentials: CredentialsConfig{
+			Mode:      CredentialModeProvide,
+			Providers: []Provider{"anthropic-prod"},
+		},
+		Output: OutputQuiet,
+	})
+	if err != nil {
+		t.Fatalf("start session: %v", err)
+	}
+
+	credential, err := kx.ProviderCredential(context.Background(), Provider("anthropic-prod"))
+	if err != nil {
+		t.Fatalf("provider credential: %v", err)
+	}
+	if gotSubjectToken != "" {
+		t.Fatalf("subject_token = %q, want empty", gotSubjectToken)
+	}
+	if gotSubjectTokenType != confidentialClientTokenType {
+		t.Fatalf("subject_token_type = %q, want %q", gotSubjectTokenType, confidentialClientTokenType)
+	}
+	if gotClientSecret != "secret_test" {
+		t.Fatalf("client_secret = %q", gotClientSecret)
+	}
+	if gotResource != "anthropic-prod" {
+		t.Fatalf("resource = %q, want anthropic-prod", gotResource)
+	}
+	if credential.Provider != "anthropic-prod" || credential.Value == "" {
+		t.Fatalf("unexpected credential: %#v", credential)
+	}
+}
+
 type listFilesInput struct {
 	Path string `json:"path" jsonschema:"required,description=Directory path to inspect"`
 	Note string `json:"note,omitempty" jsonschema:"description=Optional note passed through from the model"`
