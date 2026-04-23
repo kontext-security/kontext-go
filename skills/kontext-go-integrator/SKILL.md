@@ -34,6 +34,7 @@ Integration rules:
 - Do not rewrite Anthropic message choreography.
 - Do not change tool semantics or tool schemas.
 - After introducing `kx, err := kontext.Start(...)`, preserve Go scoping by converting later blank-identifier redeclarations like `_, err := call()` to `_, err = call()` when no non-blank variable is newly declared.
+- If there is no central dispatcher but a local `switch` or `if` chain executes tool handlers, prefer wrapping that local tool-execution block with one `ObserveTool` callback instead of rewriting individual handler functions.
 - Do not write secrets to files.
 - Do not print raw secrets.
 - Do not override `ANTHROPIC_API_KEY` unless explicitly configured.
