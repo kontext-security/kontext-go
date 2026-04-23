@@ -35,6 +35,10 @@ Integration rules:
 - Do not change tool semantics or tool schemas.
 - After introducing `kx, err := kontext.Start(...)`, preserve Go scoping by converting later blank-identifier redeclarations like `_, err := call()` to `_, err = call()` when no non-blank variable is newly declared.
 - If there is no central dispatcher but a local `switch` or `if` chain executes tool handlers, prefer wrapping that local tool-execution block with one `ObserveTool` callback instead of rewriting individual handler functions.
+- If the customer uses a config value such as `cfg.APIKey` or a client factory, preserve the existing explicit `option.WithAPIKey(...)` and add `WithCredentials(kx)` plus `WithRequestTelemetry(kx)` beside it. Do not replace non-env credential sources.
+- If `anthropic.NewClient` is hidden behind a local factory, prefer passing `kx *kontext.Client` or a Kontext request option into that factory instead of duplicating client construction at the call site.
+- If request options are assembled in a `[]option.RequestOption` slice and passed as `opts...`, preserve existing custom options and insert or append Kontext options inside the slice.
+- If an agent struct owns the Anthropic client, add `kx *kontext.Client` to the same owner and close it in the existing run/close lifecycle. Only change constructor signatures when local call sites can be updated safely; otherwise report the ambiguity.
 - Do not write secrets to files.
 - Do not print raw secrets.
 - Do not override `ANTHROPIC_API_KEY` unless explicitly configured.
