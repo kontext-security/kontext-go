@@ -86,6 +86,11 @@ type Event struct {
 
 // Start creates a local Kontext session and emits session.started.
 func Start(ctx context.Context, cfg Config) (*Client, error) {
+	var err error
+	cfg, err = configWithDefaultAuth(ctx, cfg, os.Stdout)
+	if err != nil {
+		return nil, err
+	}
 	return start(ctx, cfg, os.Stdout, outputFormatFromConfig(cfg))
 }
 
