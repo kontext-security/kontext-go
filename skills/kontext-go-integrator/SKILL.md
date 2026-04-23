@@ -7,10 +7,15 @@ description: Detect and minimally patch Go agents using the Anthropic SDK so the
 
 Goal: add Kontext to an existing Anthropic Go agent with the smallest safe diff.
 
+Canonical user request:
+```text
+Use the kontext-go-integrator skill to integrate Kontext into this Anthropic Go SDK agent. Preserve the existing loop. Add github.com/kontext-security/kontext-go@v0.1.4, add Kontext session start/end, add WithCredentials(kx) and WithRequestTelemetry(kx), add TrackPrompt if obvious, and wrap the existing tool dispatch boundary with ObserveTool. Then run gofmt, go mod tidy, and go test ./...
+```
+
 Default behavior:
 1. Inspect the Go module and confirm `github.com/anthropics/anthropic-sdk-go` is used.
 2. Find `anthropic.NewClient`.
-3. Add the Kontext Go module with `go get github.com/kontext-security/kontext-go@v0.1.3`.
+3. Add the Kontext Go module with `go get github.com/kontext-security/kontext-go@v0.1.4`.
 4. Preserve existing credential behavior and add Kontext at the Anthropic client boundary.
 5. Add Anthropic request telemetry.
 6. Track the user prompt if the prompt variable is obvious.

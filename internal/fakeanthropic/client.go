@@ -62,7 +62,7 @@ func (t *transport) RoundTrip(req *http.Request) (*http.Response, error) {
 			"role": "assistant",
 				"model": "claude-sonnet-4-5",
 				"content": [
-						{"type": "text", "text": "This integration demonstrates Kontext credentials, Anthropic request telemetry, and tool-boundary observation inside an existing Go SDK loop."}
+						{"type": "text", "text": "Existing Anthropic loop completed with Kontext telemetry and trace capture."}
 				],
 			"stop_reason": "end_turn",
 			"stop_sequence": null,

@@ -14,16 +14,24 @@ The Go module has two public packages:
 - `github.com/kontext-security/kontext-go` is the core package for Kontext session, credentials, and prompt tracking.
 - `github.com/kontext-security/kontext-go/anthropic` is the Anthropic adapter package for `WithCredentials`, `WithRequestTelemetry`, `ObserveTool`, and `WrapTools`.
 
+In short: one installable Go module, two import paths, one separate skills repo.
+
 Install the Go package:
 
 ```sh
-go get github.com/kontext-security/kontext-go@v0.1.3
+go get github.com/kontext-security/kontext-go@v0.1.4
 ```
 
 Install the skill from the Kontext skills repository:
 
 ```sh
 npx skills add kontext-security/skills
+```
+
+Then ask the coding agent:
+
+```text
+Use the kontext-go-integrator skill to integrate Kontext into this Anthropic Go SDK agent. Preserve the existing loop. Add github.com/kontext-security/kontext-go@v0.1.4, add Kontext session start/end, add WithCredentials(kx) and WithRequestTelemetry(kx), add TrackPrompt if obvious, and wrap the existing tool dispatch boundary with ObserveTool. Then run gofmt, go mod tidy, and go test ./...
 ```
 
 Or install only the Go integrator zip:
@@ -36,8 +44,15 @@ Or download the skill zip from the GitHub release:
 
 ```sh
 curl -L -o kontext-go-integrator.zip \
-  https://github.com/kontext-security/kontext-go/releases/download/v0.1.3/kontext-go-integrator.zip
+  https://github.com/kontext-security/kontext-go/releases/download/v0.1.4/kontext-go-integrator.zip
 ```
+
+Fallbacks for live setup:
+
+- Skill zip: `https://github.com/kontext-security/kontext-go/releases/download/v0.1.4/kontext-go-integrator.zip`
+- Runtime install: `go get github.com/kontext-security/kontext-go@v0.1.4`
+- Demo connect: `go run ./cmd/custom-loop-demo --connect`
+- Live proof: `env -u ANTHROPIC_API_KEY go run ./cmd/custom-loop-demo`
 
 ```go
 import (

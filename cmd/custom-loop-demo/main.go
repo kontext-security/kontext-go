@@ -124,19 +124,18 @@ func run(ctx context.Context, opts demoOptions) error {
 	ui.Success("Request telemetry", "enabled")
 	ui.Success("Tool boundary", "dispatchTool")
 
-	prompt := `Use list_files once with path ".". Return one short sentence starting with: "This integration demonstrates..."`
+	prompt := `Use list_files once with path ".". Return one short sentence explaining what this Go integration demonstrates.`
 	ui.Section("Prompt")
 	ui.Text(`Use list_files once with path ".".`)
 
 	ui.Section("Run")
 	kx.TrackPrompt(ctx, prompt)
-	message, err := runManualAgentLoop(ctx, kx, client, prompt)
-	if err != nil {
+	if _, err := runManualAgentLoop(ctx, kx, client, prompt); err != nil {
 		return fmt.Errorf("run manual agent loop: %w", err)
 	}
 
 	ui.Section("Result")
-	ui.Text(shortResult(assistantText(message)))
+	ui.Text("Existing Anthropic loop completed with Kontext telemetry and trace capture.")
 
 	ui.Section("Trace")
 	ui.Text("https://app.kontext.security/traces")

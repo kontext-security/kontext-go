@@ -101,7 +101,7 @@ func TestBetaToolRunnerFlowEmitsExpectedEvents(t *testing.T) {
 	if err != nil {
 		t.Fatalf("run to completion: %v", err)
 	}
-	if message == nil || len(message.Content) == 0 || !strings.Contains(message.Content[0].Text, "This integration demonstrates") {
+	if message == nil || len(message.Content) == 0 || !strings.Contains(message.Content[0].Text, "Existing Anthropic loop completed") {
 		t.Fatalf("unexpected final message: %#v", message)
 	}
 
