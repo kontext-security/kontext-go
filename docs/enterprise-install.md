@@ -3,7 +3,7 @@
 Default Go module install:
 
 ```sh
-go get github.com/kontext-security/kontext-go@v0.1.2
+go get github.com/kontext-security/kontext-go@v0.1.3
 ```
 
 Private enterprise install:

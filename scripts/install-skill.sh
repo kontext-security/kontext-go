@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 set -eu
 
-VERSION="${KONTEXT_GO_VERSION:-v0.1.2}"
+VERSION="${KONTEXT_GO_VERSION:-v0.1.3}"
 SKILLS_DIR="${CODEX_SKILLS_DIR:-$HOME/.codex/skills}"
 ZIP_URL="https://github.com/kontext-security/kontext-go/releases/download/${VERSION}/kontext-go-integrator.zip"
 

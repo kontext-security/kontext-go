@@ -10,7 +10,7 @@ Goal: add Kontext to an existing Anthropic Go agent with the smallest safe diff.
 Default behavior:
 1. Inspect the Go module and confirm `github.com/anthropics/anthropic-sdk-go` is used.
 2. Find `anthropic.NewClient`.
-3. Add the Kontext Go module with `go get github.com/kontext-security/kontext-go@v0.1.2`.
+3. Add the Kontext Go module with `go get github.com/kontext-security/kontext-go@v0.1.3`.
 4. Preserve existing credential behavior and add Kontext at the Anthropic client boundary.
 5. Add Anthropic request telemetry.
 6. Track the user prompt if the prompt variable is obvious.

@@ -9,13 +9,24 @@ The Go package and the skill are separate:
 - The Go package is runtime code that gets compiled into the customer's agent.
 - The skill is a coding-agent instruction bundle that patches the customer's repo to use the Go package.
 
+The Go module has two public packages:
+
+- `github.com/kontext-security/kontext-go` is the core package for Kontext session, credentials, and prompt tracking.
+- `github.com/kontext-security/kontext-go/anthropic` is the Anthropic adapter package for `WithCredentials`, `WithRequestTelemetry`, `ObserveTool`, and `WrapTools`.
+
 Install the Go package:
 
 ```sh
-go get github.com/kontext-security/kontext-go@v0.1.2
+go get github.com/kontext-security/kontext-go@v0.1.3
 ```
 
-Install the skill for Codex:
+Install the skill from the Kontext skills repository:
+
+```sh
+npx skills add kontext-security/skills
+```
+
+Or install only the Go integrator zip:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/kontext-security/kontext-go/main/scripts/install-skill.sh | sh
@@ -25,7 +36,7 @@ Or download the skill zip from the GitHub release:
 
 ```sh
 curl -L -o kontext-go-integrator.zip \
-  https://github.com/kontext-security/kontext-go/releases/download/v0.1.2/kontext-go-integrator.zip
+  https://github.com/kontext-security/kontext-go/releases/download/v0.1.3/kontext-go-integrator.zip
 ```
 
 ```go
