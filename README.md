@@ -2,6 +2,32 @@
 
 This module adds Kontext credentials, request telemetry, prompt tracking, and tool-boundary telemetry to Anthropic Go SDK agents without requiring a CLI wrapper or a migration to ToolRunner.
 
+## Install
+
+The Go package and the skill are separate:
+
+- The Go package is runtime code that gets compiled into the customer's agent.
+- The skill is a coding-agent instruction bundle that patches the customer's repo to use the Go package.
+
+Install the Go package:
+
+```sh
+go get github.com/kontext-security/kontext-go@v0.1.2
+```
+
+Install the skill for Codex:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/kontext-security/kontext-go/main/scripts/install-skill.sh | sh
+```
+
+Or download the skill zip from the GitHub release:
+
+```sh
+curl -L -o kontext-go-integrator.zip \
+  https://github.com/kontext-security/kontext-go/releases/download/v0.1.2/kontext-go-integrator.zip
+```
+
 ```go
 import (
 	kontext "github.com/kontext-security/kontext-go"

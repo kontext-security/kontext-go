@@ -19,6 +19,11 @@ Default behavior:
 9. Run `gofmt`, `go mod tidy`, and `go test ./...`.
 10. Report the detected shape, files changed, and verification result.
 
+Reference examples:
+- `examples/custom-loop-before.go` -> `examples/custom-loop-after.go`
+- `examples/toolrunner-before.go` -> `examples/toolrunner-after.go`
+- `examples/telemetry-only-before.go` -> `examples/telemetry-only-after.go`
+
 Integration rules:
 - Do not migrate to BetaToolRunner unless explicitly requested.
 - Do not rewrite Anthropic message choreography.
