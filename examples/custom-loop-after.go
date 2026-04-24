@@ -29,8 +29,6 @@ func runAgent(ctx context.Context, userPrompt string) error {
 		kxanthropic.WithRequestTelemetry(kx),
 	)
 
-	kx.TrackPrompt(ctx, userPrompt)
-
 	message, err := client.Messages.New(ctx, anthropic.MessageNewParams{
 		Model:     anthropic.ModelClaudeSonnet4_5,
 		MaxTokens: 1024,

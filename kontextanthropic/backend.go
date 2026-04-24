@@ -115,9 +115,6 @@ func (c *Client) ingestHookEvent(ctx context.Context, event string, fields map[s
 	if input, ok := fields["input"]; ok {
 		payload["toolInput"] = base64JSON(input)
 	}
-	if prompt, ok := fields["prompt"]; ok {
-		payload["toolInput"] = base64JSON(map[string]any{"prompt": prompt})
-	}
 	if output, ok := fields["output"]; ok {
 		payload["toolResponse"] = base64JSON(output)
 	}
@@ -172,8 +169,6 @@ func connectUnary(ctx context.Context, cfg Config, procedure string, payload any
 
 func hookEventName(event string) string {
 	switch event {
-	case "prompt.submitted":
-		return "UserPromptSubmit"
 	case "tool.pre_use":
 		return "PreToolUse"
 	case "tool.post_use":

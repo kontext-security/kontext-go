@@ -17,8 +17,6 @@ func prettyEventLine(event string, record map[string]any) string {
 			record["service_name"],
 			record["environment"],
 		)
-	case "prompt.submitted":
-		return fmt.Sprintf("[Kontext] UserPromptSubmit: %q", record["prompt"])
 	case "provider.credential.resolved":
 		return fmt.Sprintf(
 			"[Kontext] ProviderCredentialResolved: provider=%s source=%s secret=[REDACTED]",

@@ -7,7 +7,7 @@ The Go package and the skill are different pieces:
 
 The Go module has two public packages:
 
-- `github.com/kontext-security/kontext-go` for Kontext session, credentials, and prompt tracking.
+- `github.com/kontext-security/kontext-go` for Kontext sessions, credentials, and tool-call tracking.
 - `github.com/kontext-security/kontext-go/anthropic` for Anthropic SDK adapters.
 
 In short: one installable Go module, two import paths, one separate skills repo.
@@ -27,7 +27,7 @@ npx skills add kontext-security/skills
 Then ask the coding agent:
 
 ```text
-Use the kontext-go-integrator skill to integrate Kontext into this Anthropic Go SDK agent. Preserve the existing loop. Add github.com/kontext-security/kontext-go@v0.1.4, add Kontext session start/end, add WithCredentials(kx) and WithRequestTelemetry(kx), add TrackPrompt if obvious, and wrap the existing tool dispatch boundary with ObserveTool. Then run gofmt, go mod tidy, and go test ./...
+Use the kontext-go-integrator skill to integrate Kontext into this Anthropic Go SDK agent. Preserve the existing loop. Add github.com/kontext-security/kontext-go@v0.1.4, add Kontext session start/end, add WithCredentials(kx) and WithRequestTelemetry(kx), and wrap the existing tool dispatch boundary with ObserveTool. Then run gofmt, go mod tidy, and go test ./...
 ```
 
 Or install only the Go integrator skill:
@@ -55,7 +55,7 @@ Then open the customer's Go repo and ask:
 Use the kontext-go-integrator skill to integrate Kontext into this Anthropic Go SDK agent.
 ```
 
-The skill should preserve the existing agent loop, add Kontext credentials and request telemetry at `anthropic.NewClient`, track the prompt when obvious, and wrap the existing tool execution call with `kxanthropic.ObserveTool`.
+The skill should preserve the existing agent loop, add Kontext credentials and request telemetry at `anthropic.NewClient`, and wrap the existing tool execution call with `kxanthropic.ObserveTool`.
 
 Fallbacks for live setup:
 

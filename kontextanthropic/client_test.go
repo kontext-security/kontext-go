@@ -232,7 +232,7 @@ func TestProviderCredentialExchangesAnthropicKey(t *testing.T) {
 
 func TestConfidentialRuntimeCreatesSessionAndIngestsHooks(t *testing.T) {
 	var sawCreateSession bool
-	var sawHook bool
+	var hookEvents []string
 	var sawEndSession bool
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("X-Kontext-Client-Id") != "app_test" {
@@ -251,7 +251,6 @@ func TestConfidentialRuntimeCreatesSessionAndIngestsHooks(t *testing.T) {
 			sawCreateSession = true
 			_, _ = w.Write([]byte(`{"sessionId":"kx_runtime","sessionName":"runtime","agentId":"app_runtime","organizationId":"org_test"}`))
 		case "/kontext.agent.v1.AgentService/ProcessHookEvent":
-			sawHook = true
 			var payload struct {
 				SessionID string `json:"sessionId"`
 				HookEvent string `json:"hookEvent"`
@@ -259,9 +258,10 @@ func TestConfidentialRuntimeCreatesSessionAndIngestsHooks(t *testing.T) {
 			if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 				t.Fatalf("decode hook payload: %v", err)
 			}
-			if payload.SessionID != "kx_runtime" || payload.HookEvent != "UserPromptSubmit" {
+			if payload.SessionID != "kx_runtime" {
 				t.Fatalf("unexpected hook payload: %#v", payload)
 			}
+			hookEvents = append(hookEvents, payload.HookEvent)
 			_, _ = w.Write([]byte(`{"decision":"ALLOW","eventId":"evt_test"}`))
 		case "/kontext.agent.v1.AgentService/EndSession":
 			sawEndSession = true
@@ -284,13 +284,18 @@ func TestConfidentialRuntimeCreatesSessionAndIngestsHooks(t *testing.T) {
 		t.Fatalf("start session: %v", err)
 	}
 
-	kx.TrackPrompt(context.Background(), "hello")
+	_, err = ObserveTool(context.Background(), kx, "list_files", map[string]any{"path": "."}, func(context.Context) (string, error) {
+		return "README.md", nil
+	})
+	if err != nil {
+		t.Fatalf("observe tool: %v", err)
+	}
 	if err := kx.End(context.Background()); err != nil {
 		t.Fatalf("end session: %v", err)
 	}
 
-	if !sawCreateSession || !sawHook || !sawEndSession {
-		t.Fatalf("missing backend call create=%v hook=%v end=%v", sawCreateSession, sawHook, sawEndSession)
+	if !sawCreateSession || !sawEndSession || !stringSliceContains(hookEvents, "PreToolUse") || !stringSliceContains(hookEvents, "PostToolUse") {
+		t.Fatalf("missing backend call create=%v hooks=%v end=%v", sawCreateSession, hookEvents, sawEndSession)
 	}
 }
 
@@ -437,4 +442,13 @@ func requireEvent(t *testing.T, events []map[string]any, name string) {
 		}
 	}
 	t.Fatalf("missing event %q in %#v", name, events)
+}
+
+func stringSliceContains(values []string, want string) bool {
+	for _, value := range values {
+		if value == want {
+			return true
+		}
+	}
+	return false
 }
