@@ -20,7 +20,7 @@ func main() error {
 		Environment: "dev",
 		Credentials: kontext.CredentialsConfig{
 			Mode:      kontext.CredentialModeProvide,
-			Providers: []kontext.Provider{kontext.ProviderAnthropic},
+			Providers: []kontext.Provider{"anthropic-prod"},
 		},
 	})
 	if err != nil {
@@ -30,7 +30,7 @@ func main() error {
 
 	// 2. Keep the official Anthropic Go SDK client, but add Kontext credentials and telemetry.
 	client := anthropic.NewClient(
-		kxanthropic.WithCredentials(kx),
+		kxanthropic.WithCredentialsFor(kx, "anthropic-prod"),
 		kxanthropic.WithRequestTelemetry(kx),
 	)
 

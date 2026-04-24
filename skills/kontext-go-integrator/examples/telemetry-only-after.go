@@ -16,7 +16,7 @@ func runAgent(ctx context.Context, prompt string) error {
 		Environment: "dev",
 		Credentials: kontext.CredentialsConfig{
 			Mode:      kontext.CredentialModeProvide,
-			Providers: []kontext.Provider{kontext.ProviderAnthropic},
+			Providers: []kontext.Provider{"anthropic-prod"},
 		},
 	})
 	if err != nil {
@@ -25,7 +25,7 @@ func runAgent(ctx context.Context, prompt string) error {
 	defer kx.End(ctx)
 
 	client := anthropic.NewClient(
-		kxanthropic.WithCredentials(kx),
+		kxanthropic.WithCredentialsFor(kx, "anthropic-prod"),
 		kxanthropic.WithRequestTelemetry(kx),
 	)
 	kx.TrackPrompt(ctx, prompt)

@@ -13,6 +13,10 @@ func WithCredentials(kx *kontext.Client) option.RequestOption {
 	return kx.WithCredentials()
 }
 
+func WithCredentialsFor(kx *kontext.Client, providerHandle string) option.RequestOption {
+	return kx.WithCredentialsFor(kontext.Provider(providerHandle))
+}
+
 func WithRequestTelemetry(kx *kontext.Client) option.RequestOption {
 	return kx.WithRequestTelemetry()
 }
