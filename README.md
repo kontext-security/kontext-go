@@ -1,6 +1,6 @@
 # Kontext Go SDK
 
-This module adds Kontext credentials, request telemetry, prompt tracking, and tool-boundary telemetry to Anthropic Go SDK agents without requiring a CLI wrapper or a migration to ToolRunner.
+This module adds Kontext credential injection, request telemetry, and tool-call tracking to Anthropic Go SDK agents without requiring a CLI wrapper or a migration to ToolRunner.
 
 ## Install
 
@@ -11,7 +11,7 @@ The Go package and the skill are separate:
 
 The Go module has two public packages:
 
-- `github.com/kontext-security/kontext-go` is the core package for Kontext session, credentials, and prompt tracking.
+- `github.com/kontext-security/kontext-go` is the core package for Kontext sessions, credential brokering, and tool-call telemetry.
 - `github.com/kontext-security/kontext-go/anthropic` is the Anthropic adapter package for `WithCredentials`, `WithRequestTelemetry`, `ObserveTool`, and `WrapTools`.
 
 In short: one installable Go module, two import paths, one separate skills repo.
@@ -31,7 +31,7 @@ npx skills add kontext-security/skills
 Then ask the coding agent:
 
 ```text
-Use the kontext-go-integrator skill to integrate Kontext into this Anthropic Go SDK agent. Preserve the existing loop. Add github.com/kontext-security/kontext-go@v0.1.4, add Kontext session start/end, add WithCredentials(kx) and WithRequestTelemetry(kx), add TrackPrompt if obvious, and wrap the existing tool dispatch boundary with ObserveTool. Then run gofmt, go mod tidy, and go test ./...
+Use the kontext-go-integrator skill to integrate Kontext into this Anthropic Go SDK agent. Preserve the existing loop. Add github.com/kontext-security/kontext-go@v0.1.4, add Kontext session start/end, add WithCredentials(kx) and WithRequestTelemetry(kx), and wrap the existing tool dispatch boundary with ObserveTool. Then run gofmt, go mod tidy, and go test ./...
 ```
 
 Or install only the Go integrator zip:
@@ -91,7 +91,7 @@ The default flow is the client-facing DevX story:
 2. Create a governed AgentService session.
 3. Resolve the Anthropic credential from env or Kontext.
 4. Run the existing Go SDK loop and dispatcher.
-5. Send `UserPromptSubmit`, credential source, Anthropic request telemetry, `PreToolUse`, and `PostToolUse` events to Kontext.
+5. Send credential source, Anthropic request telemetry, `PreToolUse`, and `PostToolUse` events to Kontext.
 6. Open Traces and verify the run.
 
 For recording, open `examples/custom-loop-after.go` first. It shows the small integration surface without the demo's auth/bootstrap plumbing.
@@ -179,7 +179,6 @@ The default demo prints a clean walkthrough with:
 - managed session creation
 - Anthropic credential protection
 - Anthropic SDK instrumentation
-- `UserPromptSubmit`
 - Anthropic request/response observation
 - `PreToolUse`
 - `PostToolUse`
@@ -199,7 +198,7 @@ import (
 )
 ```
 
-The core package owns session/auth/telemetry/redaction/hosted connect. The Anthropic adapter package owns `WithCredentials`, `WithRequestTelemetry`, `ObserveTool`, and `WrapTools`.
+The core package owns session/auth/tool telemetry/redaction/hosted connect. The Anthropic adapter package owns `WithCredentials`, `WithRequestTelemetry`, `ObserveTool`, and `WrapTools`.
 
 ## Recording Script
 

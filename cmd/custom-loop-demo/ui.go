@@ -114,8 +114,6 @@ func (ui *demoUI) OnKontextEvent(eventName string, record map[string]any) {
 	switch eventName {
 	case "session.started":
 		ui.Success("Session started", fmt.Sprintf("%s · %s", recordString(record, "service_name"), recordString(record, "environment")))
-	case "prompt.submitted":
-		ui.Event("User prompt", "tracked")
 	case "provider.credential.missing":
 		ui.Warning("Anthropic credential", "missing")
 	case "anthropic.request.started":

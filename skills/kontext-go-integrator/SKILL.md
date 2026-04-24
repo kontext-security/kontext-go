@@ -1,6 +1,6 @@
 ---
 name: kontext-go-integrator
-description: Detect and minimally patch Go agents using the Anthropic SDK so they use Kontext credentials, request telemetry, prompt tracking, and tool telemetry without changing the existing agent loop.
+description: Detect and minimally patch Go agents using the Anthropic SDK so they use Kontext credentials, request telemetry, and tool-call tracking without changing the existing agent loop.
 ---
 
 # Kontext Go Integrator
@@ -9,7 +9,7 @@ Goal: add Kontext to an existing Anthropic Go agent with the smallest safe diff.
 
 Canonical user request:
 ```text
-Use the kontext-go-integrator skill to integrate Kontext into this Anthropic Go SDK agent. Preserve the existing loop. Add github.com/kontext-security/kontext-go@v0.1.4, add Kontext session start/end, add WithCredentials(kx) and WithRequestTelemetry(kx), add TrackPrompt if obvious, and wrap the existing tool dispatch boundary with ObserveTool. Then run gofmt, go mod tidy, and go test ./...
+Use the kontext-go-integrator skill to integrate Kontext into this Anthropic Go SDK agent. Preserve the existing loop. Add github.com/kontext-security/kontext-go@v0.1.4, add Kontext session start/end, add WithCredentials(kx) and WithRequestTelemetry(kx), and wrap the existing tool dispatch boundary with ObserveTool. Then run gofmt, go mod tidy, and go test ./...
 ```
 
 Default behavior:
@@ -18,11 +18,10 @@ Default behavior:
 3. Add the Kontext Go module with `go get github.com/kontext-security/kontext-go@v0.1.4`.
 4. Preserve existing credential behavior and add Kontext at the Anthropic client boundary.
 5. Add Anthropic request telemetry.
-6. Track the user prompt if the prompt variable is obvious.
-7. Find the existing tool execution boundary.
-8. Wrap that boundary with `ObserveTool`.
-9. Run `gofmt`, `go mod tidy`, and `go test ./...`.
-10. Report the detected shape, files changed, and verification result.
+6. Find the existing tool execution boundary.
+7. Wrap that boundary with `ObserveTool`.
+8. Run `gofmt`, `go mod tidy`, and `go test ./...`.
+9. Report the detected shape, files changed, and verification result.
 
 Reference examples:
 - `examples/custom-loop-before.go` -> `examples/custom-loop-after.go`

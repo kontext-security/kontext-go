@@ -48,7 +48,6 @@ func main() error {
 	tools := kxanthropic.WrapTools(kx, listFilesTool)
 
 	prompt := `Use list_files once with path ".".`
-	kx.TrackPrompt(ctx, prompt)
 
 	// 5. Run the existing Anthropic Go SDK agent loop unchanged.
 	runner := client.Beta.Messages.NewToolRunner(tools, anthropic.BetaToolRunnerParams{

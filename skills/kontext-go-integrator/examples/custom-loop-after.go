@@ -28,7 +28,6 @@ func runAgent(ctx context.Context, prompt string) error {
 		kxanthropic.WithCredentialsFor(kx, "anthropic-prod"),
 		kxanthropic.WithRequestTelemetry(kx),
 	)
-	kx.TrackPrompt(ctx, prompt)
 
 	message, err := client.Messages.New(ctx, anthropic.MessageNewParams{
 		Model:     anthropic.ModelClaudeSonnet4_5,

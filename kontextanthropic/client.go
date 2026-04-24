@@ -190,13 +190,6 @@ func (c *Client) End(ctx context.Context) error {
 	return nil
 }
 
-// TrackPrompt emits the Go-agent equivalent of Claude Code's UserPromptSubmit hook.
-func (c *Client) TrackPrompt(ctx context.Context, prompt string) {
-	c.emit(ctx, "prompt.submitted", map[string]any{
-		"prompt": prompt,
-	})
-}
-
 // WithRequestTelemetry adds Anthropic request/response telemetry middleware.
 func (c *Client) WithRequestTelemetry() option.RequestOption {
 	return option.WithMiddleware(func(req *http.Request, next option.MiddlewareNext) (*http.Response, error) {

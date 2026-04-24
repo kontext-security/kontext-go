@@ -129,7 +129,6 @@ func run(ctx context.Context, opts demoOptions) error {
 	ui.Text(`Use list_files once with path ".".`)
 
 	ui.Section("Run")
-	kx.TrackPrompt(ctx, prompt)
 	if _, err := runManualAgentLoop(ctx, kx, client, prompt); err != nil {
 		return fmt.Errorf("run manual agent loop: %w", err)
 	}

@@ -28,7 +28,6 @@ func runAgent(ctx context.Context, prompt string, tools []anthropic.BetaTool) er
 		kxanthropic.WithCredentialsFor(kx, "anthropic-prod"),
 		kxanthropic.WithRequestTelemetry(kx),
 	)
-	kx.TrackPrompt(ctx, prompt)
 
 	runner := client.Beta.Messages.NewToolRunner(kxanthropic.WrapTools(kx, tools...), anthropic.BetaToolRunnerParams{
 		BetaMessageNewParams: anthropic.BetaMessageNewParams{
