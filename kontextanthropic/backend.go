@@ -58,6 +58,14 @@ func createManagedSession(ctx context.Context, cfg Config, fallbackSessionID str
 	return &resp, nil
 }
 
+func canUseAgentService(cfg Config) bool {
+	return cfg.AccessToken != "" || (cfg.ClientID != "" && cfg.ClientSecret != "")
+}
+
+func isUserAccessTokenSession(cfg Config) bool {
+	return cfg.AccessToken != ""
+}
+
 func bootstrapManagedAgent(ctx context.Context, cfg Config, agentID string) error {
 	payload := struct {
 		AgentID string `json:"agentId"`
@@ -78,7 +86,7 @@ func endManagedSession(ctx context.Context, cfg Config, sessionID string) error 
 }
 
 func (c *Client) ingestHookEvent(ctx context.Context, event string, fields map[string]any) error {
-	if c.cfg.AccessToken == "" {
+	if !canUseAgentService(c.cfg) {
 		return nil
 	}
 
@@ -128,7 +136,12 @@ func connectUnary(ctx context.Context, cfg Config, procedure string, payload any
 	if err != nil {
 		return err
 	}
-	req.Header.Set("Authorization", "Bearer "+cfg.AccessToken)
+	if cfg.AccessToken != "" {
+		req.Header.Set("Authorization", "Bearer "+cfg.AccessToken)
+	} else {
+		req.Header.Set("X-Kontext-Client-Id", cfg.ClientID)
+		req.Header.Set("X-Kontext-Client-Secret", cfg.ClientSecret)
+	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Connect-Protocol-Version", "1")

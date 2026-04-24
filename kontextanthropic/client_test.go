@@ -230,6 +230,70 @@ func TestProviderCredentialExchangesAnthropicKey(t *testing.T) {
 	}
 }
 
+func TestConfidentialRuntimeCreatesSessionAndIngestsHooks(t *testing.T) {
+	var sawCreateSession bool
+	var sawHook bool
+	var sawEndSession bool
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("X-Kontext-Client-Id") != "app_test" {
+			t.Fatalf("client id header = %q", r.Header.Get("X-Kontext-Client-Id"))
+		}
+		if r.Header.Get("X-Kontext-Client-Secret") != "secret_test" {
+			t.Fatalf("client secret header = %q", r.Header.Get("X-Kontext-Client-Secret"))
+		}
+		if r.Header.Get("Authorization") != "" {
+			t.Fatalf("unexpected authorization header")
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		switch r.URL.Path {
+		case "/kontext.agent.v1.AgentService/CreateSession":
+			sawCreateSession = true
+			_, _ = w.Write([]byte(`{"sessionId":"kx_runtime","sessionName":"runtime","agentId":"app_runtime","organizationId":"org_test"}`))
+		case "/kontext.agent.v1.AgentService/ProcessHookEvent":
+			sawHook = true
+			var payload struct {
+				SessionID string `json:"sessionId"`
+				HookEvent string `json:"hookEvent"`
+			}
+			if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+				t.Fatalf("decode hook payload: %v", err)
+			}
+			if payload.SessionID != "kx_runtime" || payload.HookEvent != "UserPromptSubmit" {
+				t.Fatalf("unexpected hook payload: %#v", payload)
+			}
+			_, _ = w.Write([]byte(`{"decision":"ALLOW","eventId":"evt_test"}`))
+		case "/kontext.agent.v1.AgentService/EndSession":
+			sawEndSession = true
+			_, _ = w.Write([]byte(`{}`))
+		default:
+			t.Fatalf("unexpected path %s", r.URL.Path)
+		}
+	}))
+	defer server.Close()
+
+	kx, err := Start(context.Background(), Config{
+		ServiceName:  "test-agent",
+		Environment:  "test",
+		URL:          server.URL + "/mcp",
+		ClientID:     "app_test",
+		ClientSecret: "secret_test",
+		Output:       OutputQuiet,
+	})
+	if err != nil {
+		t.Fatalf("start session: %v", err)
+	}
+
+	kx.TrackPrompt(context.Background(), "hello")
+	if err := kx.End(context.Background()); err != nil {
+		t.Fatalf("end session: %v", err)
+	}
+
+	if !sawCreateSession || !sawHook || !sawEndSession {
+		t.Fatalf("missing backend call create=%v hook=%v end=%v", sawCreateSession, sawHook, sawEndSession)
+	}
+}
+
 func TestStartRequiresConfidentialRuntimeEnv(t *testing.T) {
 	t.Setenv("KONTEXT_CLIENT_ID", "")
 	t.Setenv("KONTEXT_CLIENT_SECRET", "")
@@ -256,7 +320,12 @@ func TestProviderCredentialUsesConfidentialClientExchange(t *testing.T) {
 	var gotClientSecret string
 	var gotResource string
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/oauth2/token" {
+		switch r.URL.Path {
+		case "/kontext.agent.v1.AgentService/CreateSession":
+			_, _ = w.Write([]byte(`{"sessionId":"kx_test","sessionName":"test","agentId":"app_runtime","organizationId":"org_test"}`))
+			return
+		case "/oauth2/token":
+		default:
 			t.Fatalf("unexpected path %s", r.URL.Path)
 		}
 		if err := r.ParseForm(); err != nil {

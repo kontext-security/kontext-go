@@ -47,9 +47,9 @@ func (c *Client) ProviderCredential(ctx context.Context, provider Provider) (Pro
 	}
 	c.mu.Unlock()
 
-	clientID := c.AgentClientID()
+	clientID := c.cfg.ClientID
 	if clientID == "" {
-		clientID = c.cfg.ClientID
+		clientID = c.AgentClientID()
 	}
 	if clientID == "" {
 		clientID = os.Getenv("KONTEXT_CLIENT_ID")

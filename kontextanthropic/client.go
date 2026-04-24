@@ -115,7 +115,7 @@ func start(ctx context.Context, cfg Config, out io.Writer, format outputFormat) 
 	sessionName := "local demo session"
 	var agentID string
 	var organizationID string
-	if cfg.AccessToken != "" {
+	if canUseAgentService(cfg) {
 		created, err := createManagedSession(ctx, cfg, sessionID)
 		if err != nil {
 			return nil, err
@@ -124,7 +124,7 @@ func start(ctx context.Context, cfg Config, out io.Writer, format outputFormat) 
 		sessionName = created.SessionName
 		agentID = created.AgentID
 		organizationID = created.OrganizationID
-		if agentID != "" {
+		if isUserAccessTokenSession(cfg) && agentID != "" {
 			if err := bootstrapManagedAgent(ctx, cfg, agentID); err != nil {
 				return nil, err
 			}
@@ -181,7 +181,7 @@ func (c *Client) End(ctx context.Context) error {
 	c.mu.Unlock()
 
 	fields := map[string]any{}
-	if c.cfg.AccessToken != "" {
+	if canUseAgentService(c.cfg) {
 		if err := endManagedSession(ctx, c.cfg, c.sessionID); err != nil {
 			fields["backend_error"] = err.Error()
 		}
